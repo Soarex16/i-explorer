@@ -17,8 +17,11 @@ class SimplePythonEmitter : IInterfaceEmitter {
 
             val paramsString = paramsList.joinToString(", ")
 
-            "\t@abstractmethod\n" +
-                    "\tdef ${methodDecl.simpleName}($paramsString): raise NotImplementedError"
+            val staticMethodHeader = if (methodDecl.isStatic) "\t@staticmethod\n" else "@classmethod"
+
+            "${staticMethodHeader}\t@abstractmethod\n" +
+                    "\tdef ${methodDecl.simpleName}($paramsString):\n" +
+                    "\t\traise NotImplementedError"
         }
 
         val sb = StringBuilder(headerTpl)

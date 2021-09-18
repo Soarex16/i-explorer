@@ -1,28 +1,23 @@
 package com.soarex16.iexporer.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.options.multiple
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
-import com.github.ajalt.clikt.parameters.options.unique
-import com.github.ajalt.clikt.parameters.types.choice
+import com.github.ajalt.clikt.core.PrintMessage
+import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.file
-import com.soarex16.iexporer.emitter.IInterfaceEmitter
-import com.soarex16.iexporer.emitter.java.SpoonJavaEmitter
-import com.soarex16.iexporer.emitter.python.SimplePythonEmitter
 import com.soarex16.iexporer.filters.BlacklistNameMethodFilter
 import com.soarex16.iexporer.filters.MethodVisibilityFilter
 import com.soarex16.iexporer.filters.WhitelistNameMethodFilter
+import com.soarex16.iexporer.filters.applyMethodFilters
 import com.soarex16.iexporer.model.*
 import com.soarex16.iexporer.parser.ISourceParser
 import com.soarex16.iexporer.parser.spoon.SpoonParser
-import org.slf4j.LoggerFactory
+import mu.KotlinLogging
 import java.io.File
 import java.nio.file.Paths
 
 class InterfaceExtractorCommand : CliktCommand(printHelpOnEmptyArgs = true, name = "i-exporer") {
-    private val logger = LoggerFactory.getLogger(javaClass)!!
+    private val logger = KotlinLogging.logger { }
 
     private val inputFile by option("-i", "--input", help = "Path to input source file (.java)")
         .file(canBeDir = false, mustExist = true, mustBeReadable = true)
@@ -33,7 +28,7 @@ class InterfaceExtractorCommand : CliktCommand(printHelpOnEmptyArgs = true, name
         "--output",
         help = "Path where you want to save the result. pathToFile+classname+\"Interface\"+extension by default"
     )
-        .file(canBeDir = false, mustBeWritable = true)
+        .file(canBeDir = false)
 
     private val inputClass by option(
         "-c",
@@ -45,9 +40,9 @@ class InterfaceExtractorCommand : CliktCommand(printHelpOnEmptyArgs = true, name
         """.trimIndent()
     )
 
-    private val target by option("-t", "--target", help = "Target platform for code emitting")
-        .choice("python", "java")
-        .required()
+    private val target by option("-t", "--target", help = "Target platform for code emitting. Python by default")
+        .enum<BuildTarget>()
+        .default(BuildTarget.PYTHON)
 
     private val visibilityModifiers by option("-s", "--scope", help = "Method filter by visibility")
         .enum<MethodVisibility>()
@@ -71,7 +66,13 @@ class InterfaceExtractorCommand : CliktCommand(printHelpOnEmptyArgs = true, name
     override fun run() {
         val codeEmitter = getEmitter(target)
         val parser: ISourceParser = SpoonParser()
-        val rootUnit = parser.parseFile(inputFile) as IECompilationUnitNode
+
+        val rootUnit: IECompilationUnitNode
+        try {
+            rootUnit = parser.parseFile(inputFile) as IECompilationUnitNode
+        } catch (e: ParserException) {
+            throw PrintMessage(e.innerException.message ?: "", error = true)
+        }
 
         check(rootUnit.declaredTypes.isNotEmpty()) {
             "Specified file does not contain any class declaration. Try another file"
@@ -114,14 +115,6 @@ class InterfaceExtractorCommand : CliktCommand(printHelpOnEmptyArgs = true, name
     }
 
     /**
-     * Отбирает методы по заданным критериям
-     */
-    private fun applyMethodFilters(
-        methods: List<IEMethodDeclarationNode>,
-        filters: List<IMethodFilter>
-    ): List<IEMethodDeclarationNode> = methods.filter { meth -> filters.any { it.matches(meth) } }
-
-    /**
      * Осуществляет поиск класса по заданному пути (если он задан)
      * Если путь к классу не указан (или такой путь не существует), то будет выбран класс по-умолчанию
      */
@@ -135,34 +128,21 @@ class InterfaceExtractorCommand : CliktCommand(printHelpOnEmptyArgs = true, name
         if (findResult != null)
             return findResult
 
-        logger.warn("Specified path to class $pathToClass can't be reached. Ensure correctness of the format and try again")
+        logger.warn{ "Specified path to class $pathToClass can't be reached. Ensure correctness of the format and try again" }
         return getDefaultClass(unit)
     }
 
     private fun getDefaultClass(unit: IECompilationUnitNode): IEClassDeclarationNode {
         // TODO: ensure that last class is default, because now it's only heuristic
         val clazz = unit.declaredTypes.last()
-        logger.warn("Selecting default class ${clazz.simpleName}")
+        logger.warn{ "Selecting default class ${clazz.simpleName}" }
 
         return clazz
     }
 
     private fun getDefaultInterfaceName(selectedClass: IEClassDeclarationNode) = "${selectedClass.simpleName}Interface"
 
-    private fun getEmitter(targetPlatform: String): IInterfaceEmitter = when (targetPlatform) {
-        "python" -> SimplePythonEmitter()
-        // TODO: починить эмиттер в java
-        "java" -> throw RuntimeException("${SpoonJavaEmitter::javaClass.name} currently not working")//SpoonJavaEmitter()
-        else -> throw IllegalArgumentException("Specified target $targetPlatform is not supported")
-    }
-
-    private fun getTargetFileExtension(targetPlatform: String): String = when (targetPlatform) {
-        "python" -> ".py"
-        "java" -> ".java"
-        else -> ""
-    }
-
-    private fun getDefaultOutputFile(targetPlatform: String, className: String): File {
+    private fun getDefaultOutputFile(targetPlatform: BuildTarget, className: String): File {
         val fileName = "${className}Interface${getTargetFileExtension(targetPlatform)}"
         val fileUri = Paths.get("").resolve(fileName).toUri()
 

@@ -1,6 +1,5 @@
-package com.soarex16.iexporer.emitter
+package com.soarex16.iexporer.emitter.java
 
-import com.soarex16.iexporer.emitter.java.SpoonJavaEmitter
 import com.soarex16.iexporer.model.*
 import org.junit.jupiter.api.Test
 
@@ -29,6 +28,7 @@ internal class SpoonJavaEmitterTest {
     fun emit_oneClass() {
         val spoonEmitter = SpoonJavaEmitter()
 
+        // TODO: не успеваю доделать
         val emittedInterface = spoonEmitter.emit(sampleInterfaceDecl)
     }
 }

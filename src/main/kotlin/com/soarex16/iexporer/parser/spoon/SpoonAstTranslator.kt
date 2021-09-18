@@ -70,7 +70,7 @@ class SpoonAstTranslator : CtScanner(), IEAstTranslator<CtCompilationUnit> {
         val returnType = createTypeNode(ctMethod.type)
 
         val meth =
-            IEMethodDeclarationNode(modifiers, returnType, ctMethod.simpleName, this.currentMethodArgs, genericParams)
+            IEMethodDeclarationNode(modifiers, returnType, ctMethod.simpleName, this.currentMethodArgs, genericParams, ctMethod.isStatic)
         currentClassMethods.add(meth)
     }
 

@@ -1,11 +1,15 @@
 plugins {
     kotlin("jvm") version "1.5.30"
     kotlin("plugin.serialization") version "1.5.30"
-    java
+    id("application")
 }
 
 group = "com.soarex16"
 version = "1.0"
+
+application {
+    mainClass.set("com.soarex16.iexporer.cli.MainKt")
+}
 
 repositories {
     mavenCentral()
@@ -13,6 +17,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+
     // https://spoon.gforge.inria.fr/
     implementation("fr.inria.gforge.spoon:spoon-core:9.1.0")
 

@@ -4,6 +4,14 @@ import com.soarex16.iexporer.model.IEMethodDeclarationNode
 import com.soarex16.iexporer.model.IMethodFilter
 import com.soarex16.iexporer.model.MethodVisibility
 
+/**
+ * Отбирает методы по заданным критериям
+ */
+fun applyMethodFilters(
+    methods: List<IEMethodDeclarationNode>,
+    filters: List<IMethodFilter>
+): List<IEMethodDeclarationNode> = methods.filter { meth -> filters.all { it.matches(meth) } }
+
 class BlacklistNameMethodFilter(private val blacklist: Collection<String>): IMethodFilter {
     override fun matches(method: IEMethodDeclarationNode) = method.simpleName !in blacklist
 }
