@@ -16,3 +16,5 @@ After that go to ```./build/distributions``` and unpack ```i-explorer-<VERSION>`
 Use start script from `/bin` as executable
 
 ./i-explorer -i <path to input file> <any other additional args>
+
+for information about any additional arguments just type ```./i-explorer --help```
