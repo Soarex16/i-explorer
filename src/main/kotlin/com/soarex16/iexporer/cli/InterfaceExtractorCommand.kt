@@ -122,7 +122,7 @@ class InterfaceExtractorCommand : CliktCommand(printHelpOnEmptyArgs = true, name
         if (pathToClass == null)
             return getDefaultClass(unit)
 
-        val qualifiedName = "${unit.packageName}.${pathToClass.split(".").joinToString("$")}}"
+        val qualifiedName = "${unit.packageName}.${pathToClass.split(".").joinToString("$")}"
         val findResult = unit.declaredTypes.find { it.qualifiedName == qualifiedName }
 
         if (findResult != null)
