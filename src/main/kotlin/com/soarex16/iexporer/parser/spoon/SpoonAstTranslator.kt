@@ -66,11 +66,12 @@ class SpoonAstTranslator : CtScanner(), IEAstTranslator<CtCompilationUnit> {
 
         val genericParams = ctMethod.formalCtTypeParameters.map { it.simpleName }
 
-        val modifiers: List<String> = ctMethod.modifiers.mapNotNull { transformMethodModifier(it) }
+        val modifiers: List<String> = ctMethod.modifiers.map { it.name.lowercase() }
+
         val returnType = createTypeNode(ctMethod.type)
 
         val meth =
-            IEMethodDeclarationNode(modifiers, returnType, ctMethod.simpleName, this.currentMethodArgs, genericParams, ctMethod.isStatic)
+            IEMethodDeclarationNode(modifiers, returnType, ctMethod.simpleName, this.currentMethodArgs, genericParams)
         currentClassMethods.add(meth)
     }
 
@@ -94,14 +95,5 @@ class SpoonAstTranslator : CtScanner(), IEAstTranslator<CtCompilationUnit> {
                 ctType.actualTypeArguments.map { it.simpleName }
 
         return IETypeNode(ctType.qualifiedName, genericParams)
-    }
-
-    private fun transformMethodModifier(modifier: ModifierKind): String? {
-        return when (modifier) {
-            ModifierKind.PUBLIC -> "public"
-            ModifierKind.PRIVATE -> "private"
-            ModifierKind.PROTECTED -> "protected"
-            else -> null
-        }
     }
 }

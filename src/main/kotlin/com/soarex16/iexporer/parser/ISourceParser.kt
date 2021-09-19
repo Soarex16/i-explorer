@@ -5,7 +5,7 @@ import java.io.File
 import java.io.InputStream
 
 interface ISourceParser {
-    fun parseString(string: String): IEAstNode?
-    fun parseInputStream(stream: InputStream): IEAstNode?
-    fun parseFile(file: File): IEAstNode?
+    fun parseString(string: String): IEAstNode
+    fun parseInputStream(stream: InputStream): IEAstNode
+    fun parseFile(file: File): IEAstNode
 }

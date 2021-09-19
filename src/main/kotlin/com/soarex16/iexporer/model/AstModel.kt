@@ -46,8 +46,7 @@ data class IEMethodDeclarationNode(
     val returnType: IETypeNode,
     val simpleName: String,
     val arguments: List<IEMethodArgumentNode> = emptyList(),
-    val genericTypeParams: List<String>? = null,
-    val isStatic: Boolean = false
+    val genericTypeParams: List<String>? = null
 ) : IEAstNode {
     override val nodeType: String
         get() = javaClass.simpleName
