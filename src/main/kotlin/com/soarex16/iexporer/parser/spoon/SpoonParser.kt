@@ -3,6 +3,7 @@ package com.soarex16.iexporer.parser.spoon
 import com.soarex16.iexporer.model.IEAstNode
 import com.soarex16.iexporer.model.ParserException
 import com.soarex16.iexporer.parser.ISourceParser
+import com.soarex16.iexporer.parser.spoon.adapter.SpoonAstTranslator
 import org.apache.commons.io.FileUtils.copyInputStreamToFile
 import spoon.Launcher
 import spoon.compiler.SpoonResource

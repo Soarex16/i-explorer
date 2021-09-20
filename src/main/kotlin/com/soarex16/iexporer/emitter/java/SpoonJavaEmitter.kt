@@ -7,6 +7,7 @@ import com.soarex16.iexporer.model.InterfaceDeclaration
 import spoon.Launcher
 import spoon.reflect.code.CtComment
 import spoon.reflect.declaration.*
+import spoon.reflect.reference.CtReference
 import spoon.reflect.reference.CtTypeParameterReference
 import spoon.reflect.reference.CtTypeReference
 
@@ -23,6 +24,7 @@ private val AUTOGEN_COMMENT = "This interface was generated automatically by i-e
 
 class SpoonJavaEmitter : IInterfaceEmitter {
     private val launcher = Launcher()
+    private val factory = launcher.factory
 
     init {
         launcher.environment.noClasspath = true
@@ -34,10 +36,7 @@ class SpoonJavaEmitter : IInterfaceEmitter {
 
         val clazz = iface.sourceClass
 
-        val factory = launcher.factory
         val emittedInterface = factory.createInterface(interfaceQualifiedName)
-
-        val typeParam = factory.createTypeReference<Any>()
 
         addAutogenComment(emittedInterface)
         val classTypeParams = clazz.genericTypeParams
@@ -56,11 +55,8 @@ class SpoonJavaEmitter : IInterfaceEmitter {
 
             factory.createTypeParameter()
 
-            newGenericParams.forEach {
-                //val paramRef = factory.createTypeParameterReference()
-                val param = factory.createTypeParameter()
-                //param.(it)
-                emittedInterface.addFormalCtTypeParameter<CtTypeParameter>(param)
+            createGenericParams(newGenericParams).forEach {
+                emittedInterface.addFormalCtTypeParameter<CtTypeParameter>(it)
             }
 
             val method = factory.Method().create(emittedInterface, emptySet(), returnType, meth.simpleName, params, emptySet())
@@ -69,6 +65,12 @@ class SpoonJavaEmitter : IInterfaceEmitter {
         }
 
         return emittedInterface.toStringWithImports()
+    }
+
+    private fun createGenericParams(params: List<String>) = params.map {
+        val param = factory.createTypeParameter()
+        param.setSimpleName<CtNamedElement>(it)
+        param
     }
 
     private fun getNewGenericParams(
@@ -86,7 +88,9 @@ class SpoonJavaEmitter : IInterfaceEmitter {
     }
 
     private fun createSpoonTypeRef(type: IETypeNode): CtTypeReference<*> {
-        TODO()
+        val typeRef = factory.createTypeReference<Any>()
+        typeRef.setSimpleName<CtReference>(type.qualifiedName)
+        return typeRef
     }
 
     private fun createSpoonParam(ieArg: IEMethodArgumentNode): CtParameter<*> {

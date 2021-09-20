@@ -19,7 +19,7 @@ sealed interface IEAstNode {
 // TODO: параметры дженериков-то какие-то могут быть уже подставлены
 @Serializable
 @SerialName("type")
-data class IETypeNode(val qualifiedName: String, val genericTypeParams: List<String>? = null): IEAstNode {
+data class IETypeNode(val qualifiedName: String, val isArray: Boolean = false, val genericTypeParams: List<String>? = null): IEAstNode {
     override val nodeType: String = javaClass.simpleName
 
     fun isGenericParam() = genericTypeParams?.size == 1 && qualifiedName == genericTypeParams.firstOrNull()
